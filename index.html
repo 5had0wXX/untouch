@@ -191,6 +191,7 @@
         </label>
 
         <button id="search">Find P3 leads</button>
+        <p class="subtitle" id="status">Ready to scan.</p>
 
         <div class="results" id="results"></div>
       </section>
@@ -212,6 +213,7 @@
 
       const markerLayer = L.layerGroup().addTo(map);
       const resultsEl = document.getElementById("results");
+      const statusEl = document.getElementById("status");
       const radiusEl = document.getElementById("radius");
       const radiusValueEl = document.getElementById("radius-value");
 
@@ -258,10 +260,12 @@
           return;
         }
         resultsEl.innerHTML = "Searching...";
+        statusEl.textContent = "Locating address…";
         markerLayer.clearLayers();
 
         try {
           const geo = await geocode(query);
+          statusEl.textContent = `Searching near ${geo.display}`;
           map.flyTo([geo.lat, geo.lon], 12, { duration: 1.2 });
           const radius = Number(radiusEl.value);
           const response = await fetch(
@@ -272,6 +276,7 @@
           }
           const data = await response.json();
           renderResults(data.results);
+          statusEl.textContent = `Found ${data.results.length} leads within ${radius} mi.`;
 
           data.results.forEach((lead) => {
             const marker = L.circleMarker([lead.lat, lead.lon], {
@@ -287,10 +292,17 @@
           });
         } catch (error) {
           resultsEl.innerHTML = `Unable to search: ${error.message}`;
+          statusEl.textContent = "Search failed. Try another location.";
         }
       }
 
       document.getElementById("search").addEventListener("click", search);
+      document.getElementById("location").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          search();
+        }
+      });
     </script>
   </body>
 </html>
