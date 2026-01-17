@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Untouch P3 Recon</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: "IBM Plex Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo,
+          Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        background: #02030a;
+        color: #e2e8f0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+
+      #app {
+        display: grid;
+        grid-template-columns: minmax(320px, 420px) 1fr;
+        height: 100vh;
+        background: radial-gradient(circle at top, #0f172a, #02030a 70%);
+      }
+
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        padding: 22px 24px;
+        background: rgba(2, 6, 23, 0.94);
+        border-right: 1px solid rgba(56, 189, 248, 0.2);
+        backdrop-filter: blur(18px);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .pulse {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #38bdf8;
+        box-shadow: 0 0 16px rgba(56, 189, 248, 0.85);
+        animation: pulse 1.8s infinite;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.15rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .subtitle {
+        margin: 0;
+        font-size: 0.78rem;
+        color: rgba(226, 232, 240, 0.6);
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 0.75rem;
+        color: rgba(226, 232, 240, 0.65);
+      }
+
+      input,
+      select,
+      button {
+        font-family: inherit;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      select {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        background: rgba(15, 23, 42, 0.6);
+        color: #e2e8f0;
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: #38bdf8;
+      }
+
+      .button-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        padding: 10px 14px;
+        border: 1px solid rgba(56, 189, 248, 0.45);
+        border-radius: 10px;
+        background: rgba(14, 116, 144, 0.35);
+        color: #e2e8f0;
+        font-weight: 600;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 30px rgba(14, 116, 144, 0.3);
+      }
+
+      .status {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        background: rgba(15, 23, 42, 0.6);
+        font-size: 0.75rem;
+        color: rgba(226, 232, 240, 0.7);
+      }
+
+      .results {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        overflow: hidden;
+      }
+
+      .results table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+      }
+
+      th,
+      td {
+        padding: 8px 6px;
+        text-align: left;
+        border-bottom: 1px solid rgba(56, 189, 248, 0.12);
+      }
+
+      th {
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: rgba(226, 232, 240, 0.7);
+        cursor: pointer;
+      }
+
+      tbody tr:hover {
+        background: rgba(56, 189, 248, 0.08);
+      }
+
+      #map {
+        height: 100%;
+        width: 100%;
+      }
+
+      .drawer {
+        position: absolute;
+        right: 24px;
+        top: 24px;
+        width: min(340px, 90%);
+        background: rgba(2, 6, 23, 0.95);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 20px 60px rgba(2, 6, 23, 0.6);
+        display: none;
+        z-index: 600;
+      }
+
+      .drawer.open {
+        display: block;
+      }
+
+      .drawer h2 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+      }
+
+      .drawer .meta {
+        font-size: 0.75rem;
+        color: rgba(226, 232, 240, 0.65);
+        margin-bottom: 12px;
+      }
+
+      .drawer .why {
+        font-size: 0.75rem;
+        display: grid;
+        gap: 8px;
+      }
+
+      .drawer .why a {
+        color: #38bdf8;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.2);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @media (max-width: 960px) {
+        #app {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: absolute;
+          z-index: 700;
+          width: min(360px, 94vw);
+          height: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="pulse"></span>
+          <div>
+            <h1>Untouch P3</h1>
+            <p class="subtitle">Connecticut candidate intelligence console</p>
+          </div>
+        </div>
+
+        <label>
+          Center point
+          <input id="location" type="text" placeholder="Hartford, CT" />
+        </label>
+
+        <label>
+          Radius: <span id="radius-value">25</span> miles
+          <input id="radius" type="range" min="5" max="75" value="25" />
+        </label>
+
+        <label>
+          Minimum acres
+          <input id="min-acres" type="number" value="10" min="1" />
+        </label>
+
+        <label>
+          Minimum building sqft
+          <input id="min-bldg" type="number" value="50000" min="0" />
+        </label>
+
+        <label>
+          Minimum score
+          <input id="min-score" type="number" value="20" min="0" />
+        </label>
+
+        <div class="button-row">
+          <button id="scan">Scan / Refresh</button>
+          <button id="export">Download CSV</button>
+        </div>
+
+        <div class="status" id="status">Ready. Click Scan to refresh candidates.</div>
+
+        <div class="results">
+          <table>
+            <thead>
+              <tr>
+                <th data-sort="name">Lead</th>
+                <th data-sort="score_total">Score</th>
+                <th data-sort="distance_miles">Miles</th>
+              </tr>
+            </thead>
+            <tbody id="results"></tbody>
+          </table>
+        </div>
+      </aside>
+
+      <div id="map"></div>
+
+      <section class="drawer" id="drawer">
+        <h2 id="drawer-title">Select a lead</h2>
+        <div class="meta" id="drawer-meta"></div>
+        <div class="why" id="drawer-why"></div>
+      </section>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script>
+      const map = L.map("map", { zoomControl: false }).setView([41.7658, -72.6734], 10);
+      L.control.zoom({ position: "topright" }).addTo(map);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: "&copy; OpenStreetMap contributors"
+      }).addTo(map);
+
+      const clusterLayer = L.markerClusterGroup();
+      map.addLayer(clusterLayer);
+
+      const statusEl = document.getElementById("status");
+      const resultsEl = document.getElementById("results");
+      const radiusEl = document.getElementById("radius");
+      const radiusValueEl = document.getElementById("radius-value");
+      const drawer = document.getElementById("drawer");
+      const drawerTitle = document.getElementById("drawer-title");
+      const drawerMeta = document.getElementById("drawer-meta");
+      const drawerWhy = document.getElementById("drawer-why");
+
+      let currentResults = [];
+      let currentSort = "score_total";
+      let sortAsc = false;
+
+      radiusEl.addEventListener("input", () => {
+        radiusValueEl.textContent = radiusEl.value;
+      });
+
+      async function geocode(query) {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query
+        )}`;
+        const response = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!response.ok) {
+          throw new Error("Geocoding failed");
+        }
+        const data = await response.json();
+        if (!data.length) {
+          throw new Error("No results");
+        }
+        return {
+          lat: Number(data[0].lat),
+          lon: Number(data[0].lon),
+          display: data[0].display_name
+        };
+      }
+
+      function renderDrawer(lead) {
+        drawer.classList.add("open");
+        drawerTitle.textContent = lead.name;
+        drawerMeta.textContent = `${lead.address || ""} ${lead.town || ""} • ${lead.acres} acres • ${lead.bldg_sqft} sqft`;
+        const breakdown = Object.entries(lead.score_breakdown || {}).map(
+          ([key, value]) => `<li>${key}: +${value}</li>`
+        );
+        const signals = lead.signals
+          .map(
+            (signal) =>
+              `<li><strong>${signal.signal_type}</strong>: <a href="${signal.url}" target="_blank">${signal.signal_value}</a></li>`
+          )
+          .join("");
+        drawerWhy.innerHTML = `
+          <div><strong>Total Score:</strong> ${lead.score_total}</div>
+          <div><strong>Breakdown</strong><ul>${breakdown.join("")}</ul></div>
+          <div><strong>Evidence</strong><ul>${signals}</ul></div>
+        `;
+      }
+
+      function renderResults(results) {
+        resultsEl.innerHTML = "";
+        clusterLayer.clearLayers();
+        results.forEach((lead) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${lead.name}</td><td>${lead.score_total}</td><td>${lead.distance_miles}</td>`;
+          row.addEventListener("click", () => renderDrawer(lead));
+          resultsEl.appendChild(row);
+
+          const marker = L.circleMarker([lead.lat, lead.lon], {
+            radius: 8,
+            color: "#38bdf8",
+            fillColor: "#38bdf8",
+            fillOpacity: 0.8
+          });
+          marker.bindPopup(`<strong>${lead.name}</strong><br/>Score ${lead.score_total}`);
+          marker.on("click", () => renderDrawer(lead));
+          clusterLayer.addLayer(marker);
+        });
+      }
+
+      function sortResults() {
+        const sorted = [...currentResults].sort((a, b) => {
+          const valueA = a[currentSort];
+          const valueB = b[currentSort];
+          if (typeof valueA === "string") {
+            return sortAsc ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+          }
+          return sortAsc ? valueA - valueB : valueB - valueA;
+        });
+        renderResults(sorted);
+      }
+
+      async function fetchSearch(lat, lon) {
+        const radius = Number(radiusEl.value);
+        const minAcres = Number(document.getElementById("min-acres").value);
+        const minBldg = Number(document.getElementById("min-bldg").value);
+        const minScore = Number(document.getElementById("min-score").value);
+        const response = await fetch(
+          `/api/search?lat=${lat}&lon=${lon}&radius_miles=${radius}&min_acres=${minAcres}&min_bldg_sqft=${minBldg}&min_score=${minScore}`
+        );
+        if (!response.ok) {
+          throw new Error("Search failed");
+        }
+        const data = await response.json();
+        currentResults = data.results;
+        sortResults();
+        statusEl.textContent = `Found ${currentResults.length} candidates.`;
+      }
+
+      async function pollStatus(previousTimestamp) {
+        const response = await fetch("/api/status");
+        if (!response.ok) {
+          return null;
+        }
+        const data = await response.json();
+        if (data.state === "running") {
+          statusEl.textContent = `Refreshing... ${data.message}`;
+        }
+        if (data.state === "idle" && data.last_refresh !== previousTimestamp) {
+          return data;
+        }
+        return null;
+      }
+
+      async function runScan() {
+        const locationInput = document.getElementById("location");
+        const query = locationInput.value.trim();
+        if (!query) {
+          locationInput.focus();
+          return;
+        }
+        statusEl.textContent = "Queueing refresh job...";
+        const statusResp = await fetch("/api/status");
+        const statusData = statusResp.ok ? await statusResp.json() : { last_refresh: null };
+        await fetch("/api/refresh", { method: "POST" });
+        let refreshed = null;
+        for (let i = 0; i < 30; i += 1) {
+          refreshed = await pollStatus(statusData.last_refresh);
+          if (refreshed) {
+            break;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+        statusEl.textContent = "Geocoding location...";
+        const geo = await geocode(query);
+        map.flyTo([geo.lat, geo.lon], 11, { duration: 1.2 });
+        await fetchSearch(geo.lat, geo.lon);
+      }
+
+      function downloadCsv() {
+        if (!currentResults.length) {
+          statusEl.textContent = "No results to export.";
+          return;
+        }
+        const headers = ["name", "address", "town", "county", "acres", "bldg_sqft", "score_total"];
+        const rows = currentResults.map((lead) =>
+          headers.map((key) => `"${String(lead[key] ?? "").replace(/"/g, "\"")}"`).join(",")
+        );
+        const csv = [headers.join(","), ...rows].join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "p3_candidates.csv";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById("scan").addEventListener("click", runScan);
+      document.getElementById("export").addEventListener("click", downloadCsv);
+      document.getElementById("location").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          runScan();
+        }
+      });
+
+      document.querySelectorAll("th[data-sort]").forEach((header) => {
+        header.addEventListener("click", () => {
+          const sortKey = header.dataset.sort;
+          if (currentSort === sortKey) {
+            sortAsc = !sortAsc;
+          } else {
+            currentSort = sortKey;
+            sortAsc = false;
+          }
+          sortResults();
+        });
+      });
+    </script>
+  </body>
+</html>
