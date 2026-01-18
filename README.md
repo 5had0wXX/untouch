@@ -92,7 +92,29 @@ http://127.0.0.1:8000
 ```
 
 > Note: This is a **single-file EXE** built with PyInstaller, not a full MSI installer.
-> If you need an MSI installer, tell me and I can add a WiX-based installer build.
+> If you need an MSI installer, use the section below.
+
+---
+
+## ✅ Windows MSI installer (double-click setup)
+
+If you want a full **MSI installer**, install the free **WiX Toolset** and run:
+
+1) Install WiX Toolset v3.11+  
+   https://wixtoolset.org/releases/
+
+2) Build the installer:
+
+```bat
+build_msi.bat
+```
+
+This outputs:
+```
+Untouch-P3-Installer.msi
+```
+
+You can send that `.msi` to anyone. They can install it like a normal Windows app.
 
 ## ✅ Usage
 

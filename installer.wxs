@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product
+    Id="*"
+    Name="Untouch P3 Finder"
+    Language="1033"
+    Version="1.0.0"
+    Manufacturer="Untouch"
+    UpgradeCode="E3C35D73-1D7B-4C61-9F21-2D4A05B1F4B5"
+  >
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Untouch P3 Finder is already installed." />
+    <MediaTemplate />
+
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="Untouch P3 Finder">
+          <Component Id="AppExecutable" Guid="B2E1A102-4E35-4D4F-9C2D-5E0C0E6D4F01">
+            <File Id="P3Exe" Source="dist\Untouch-P3.exe" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ProgramMenuDir" Name="Untouch P3 Finder">
+          <Component Id="AppShortcut" Guid="A1C7F39A-5C65-4F57-8F3A-16DA30E09B13">
+            <Shortcut Id="StartMenuShortcut"
+              Name="Untouch P3 Finder"
+              Target="[INSTALLFOLDER]Untouch-P3.exe"
+              WorkingDirectory="INSTALLFOLDER"
+            />
+            <RemoveFolder Id="ProgramMenuDir" On="uninstall" />
+            <RegistryValue Root="HKCU" Key="Software\Untouch\P3Finder" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <Feature Id="MainFeature" Title="Untouch P3 Finder" Level="1">
+      <ComponentRef Id="AppExecutable" />
+      <ComponentRef Id="AppShortcut" />
+    </Feature>
+  </Product>
+</Wix>
