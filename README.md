@@ -43,46 +43,6 @@ http://127.0.0.1:8000
 
 ---
 
-## ✅ Step-by-step after you install/unzip the ZIP (Windows)
-
-Follow these steps exactly (no coding knowledge needed):
-
-1) **Unzip the ZIP file**
-   - Right‑click the ZIP → **Extract All…**
-   - Choose a folder (e.g., `Desktop\\Untouch-P3`) and click **Extract**
-
-2) **Open the extracted folder**
-   - You should see files like `app.py`, `index.html`, and `requirements.txt`.
-
-3) **Open Command Prompt in that folder**
-   - Click in the folder address bar, type `cmd`, press **Enter**
-   - A Command Prompt window opens in the right folder
-
-4) **Install dependencies (one time)**
-   - Copy/paste this and press Enter:
-     ```bat
-     pip install -r requirements.txt
-     ```
-
-5) **Run the app**
-   - Copy/paste this and press Enter:
-     ```bat
-     python app.py
-     ```
-
-6) **Open the app in your browser**
-   - Go to: `http://127.0.0.1:8000`
-
-7) **Run your first scan**
-   - Enter: `Hartford, CT`
-   - Click **Scan / Refresh**
-   - Results appear in the table and on the map
-
-8) **Stop the app**
-   - In the Command Prompt window, press **Ctrl + C**
-
----
-
 ## ✅ First-run dataset behavior
 
 On the **first refresh**, the backend tries to download a Connecticut parcel dataset automatically.
@@ -112,49 +72,6 @@ python app.py
 ```
 
 ---
-
-## ✅ Windows EXE (double-click) build
-
-If you want a **Windows EXE** you can send to others, use the provided build script:
-
-```bat
-build_exe.bat
-```
-
-This creates:
-```
-dist\\Untouch-P3.exe
-```
-
-Users can double-click the EXE, then open:
-```
-http://127.0.0.1:8000
-```
-
-> Note: This is a **single-file EXE** built with PyInstaller, not a full MSI installer.
-> If you need an MSI installer, use the section below.
-
----
-
-## ✅ Windows MSI installer (double-click setup)
-
-If you want a full **MSI installer**, install the free **WiX Toolset** and run:
-
-1) Install WiX Toolset v3.11+  
-   https://wixtoolset.org/releases/
-
-2) Build the installer:
-
-```bat
-build_msi.bat
-```
-
-This outputs:
-```
-Untouch-P3-Installer.msi
-```
-
-You can send that `.msi` to anyone. They can install it like a normal Windows app.
 
 ## ✅ Usage
 
